@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -19,23 +20,28 @@ export default function ProfileScreen() {
   const { user, profile, isDemoMode, logoutDemo } = useAuth();
   const [isSigning, setIsSigning] = useState(false);
 
-  const handleSignOut = async () => {
+  const doSignOut = async () => {
+    setIsSigning(true);
+    if (isDemoMode) {
+      logoutDemo();
+      router.replace('/(auth)/login');
+      return;
+    }
+    await signOut();
+    router.replace('/(auth)/login');
+  };
+
+  const handleSignOut = () => {
+    // 웹에서 Alert.alert 다중버튼이 동작 안 하므로 window.confirm 사용
+    if (Platform.OS === 'web') {
+      if (window.confirm('로그아웃 하시겠습니까?')) {
+        doSignOut();
+      }
+      return;
+    }
     Alert.alert('로그아웃', '로그아웃 하시겠습니까?', [
       { text: '취소', style: 'cancel' },
-      {
-        text: '로그아웃',
-        style: 'destructive',
-        onPress: async () => {
-          setIsSigning(true);
-          if (isDemoMode) {
-            logoutDemo();
-            router.replace('/(auth)/login');
-            return;
-          }
-          await signOut();
-          router.replace('/(auth)/login');
-        },
-      },
+      { text: '로그아웃', style: 'destructive', onPress: doSignOut },
     ]);
   };
 
