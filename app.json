@@ -24,11 +24,22 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.yourname.nutritioncoach",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
-      "favicon": "./assets/favicon.png"
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "나만의 영양코치",
+      "shortName": "영양코치",
+      "lang": "ko",
+      "description": "AI 기반 개인 영양 코치 앱 — 식단 기록, 영양 분석, AI 코칭",
+      "themeColor": "#486400",
+      "backgroundColor": "#f6f6f6"
     },
     "plugins": [
       "expo-router",
@@ -49,6 +60,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "34b88016-8ead-4972-bc89-2fb693816e95"
+      }
     }
   }
 }

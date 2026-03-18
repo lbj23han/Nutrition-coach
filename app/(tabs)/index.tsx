@@ -72,59 +72,97 @@ export default function HomeScreen() {
   const remaining = calorieTarget - consumed.calories;
   const calorieProgress = Math.min(consumed.calories / calorieTarget, 1);
 
+  const dayOfWeek = new Date().toLocaleDateString('ko-KR', { weekday: 'long' });
+  const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>안녕하세요, {profile?.name ?? '사용자'}님! 👋</Text>
-          <Text style={styles.date}>{formatDate(today)}</Text>
+          <Text style={styles.dateLabel}>{dayOfWeek}, {dateStr}</Text>
+          <Text style={styles.greeting}>안녕하세요, {profile?.name ?? '사용자'}님 👋</Text>
         </View>
 
-        {/* Calorie Card */}
+        {/* Calorie Card — big hero */}
         <View style={styles.calorieCard}>
-          <View style={styles.calorieRow}>
-            <View style={styles.calorieItem}>
-              <Text style={styles.calorieLabel}>목표</Text>
-              <Text style={styles.calorieValue}>{calorieTarget}</Text>
-              <Text style={styles.calorieUnit}>kcal</Text>
-            </View>
-            <View style={styles.calorieDivider} />
-            <View style={styles.calorieMain}>
+          <Text style={styles.calorieCardLabel}>남은 칼로리</Text>
+          <View style={styles.calorieMainRow}>
+            <View>
               <Text style={[styles.remainingValue, remaining < 0 && { color: COLORS.error }]}>
                 {remaining < 0 ? `+${Math.abs(remaining)}` : remaining}
               </Text>
-              <Text style={styles.remainingLabel}>{remaining < 0 ? '초과' : '남은 칼로리'}</Text>
-              <View style={styles.progressBar}>
+              <Text style={styles.remainingUnit}>kcal {remaining < 0 ? '초과' : ''}</Text>
+            </View>
+            {/* Ring */}
+            <View style={styles.ringContainer}>
+              <View style={styles.ringOuter}>
                 <View style={[
-                  styles.progressFill,
-                  { width: `${calorieProgress * 100}%` as any },
-                  calorieProgress >= 1 && styles.progressOver,
+                  styles.ringFill,
+                  {
+                    borderColor: calorieProgress >= 1 ? COLORS.error : COLORS.primaryContainer,
+                    borderTopColor: 'transparent',
+                    transform: [{ rotate: `${calorieProgress * 360}deg` }],
+                  }
                 ]} />
+                <View style={styles.ringInner}>
+                  <Text style={styles.ringPct}>{Math.round(calorieProgress * 100)}%</Text>
+                </View>
               </View>
             </View>
-            <View style={styles.calorieDivider} />
-            <View style={styles.calorieItem}>
-              <Text style={styles.calorieLabel}>섭취</Text>
-              <Text style={styles.calorieValue}>{consumed.calories}</Text>
-              <Text style={styles.calorieUnit}>kcal</Text>
+          </View>
+
+          <View style={styles.calorieFooter}>
+            <View>
+              <Text style={styles.calorieFooterLabel}>목표</Text>
+              <Text style={styles.calorieFooterValue}>{calorieTarget.toLocaleString()} kcal</Text>
+            </View>
+            <View style={styles.progressBar}>
+              <View style={[
+                styles.progressFill,
+                { width: `${calorieProgress * 100}%` as any },
+                calorieProgress >= 1 && { backgroundColor: COLORS.error },
+              ]} />
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.calorieFooterLabel}>섭취</Text>
+              <Text style={styles.calorieFooterValue}>{consumed.calories.toLocaleString()} kcal</Text>
             </View>
           </View>
         </View>
 
         {/* Macros */}
-        <View style={styles.macrosCard}>
-          <Text style={styles.sectionTitle}>3대 영양소</Text>
-          <View style={styles.macrosRow}>
-            <MacroItem label="단백질" current={consumed.protein} target={proteinTarget} unit="g" color={COLORS.protein} />
-            <MacroItem label="탄수화물" current={consumed.carbs} target={carbTarget} unit="g" color={COLORS.carbs} />
-            <MacroItem label="지방" current={consumed.fat} target={fatTarget} unit="g" color={COLORS.fat} />
-          </View>
+        <View style={styles.macrosRow}>
+          <MacroCard label="단백질" current={consumed.protein} target={proteinTarget} unit="g" color={COLORS.protein} />
+          <MacroCard label="탄수화물" current={consumed.carbs} target={carbTarget} unit="g" color={COLORS.carbs} />
+          <MacroCard label="지방" current={consumed.fat} target={fatTarget} unit="g" color={COLORS.fat} />
         </View>
 
-        {/* Meal Sections */}
+        {/* BMR/TDEE */}
+        {profile && (
+          <View style={styles.energyCard}>
+            <Text style={styles.energyTitle}>에너지 정보</Text>
+            <View style={styles.energyRow}>
+              <View style={styles.energyItem}>
+                <Text style={styles.energyLabel}>BMR</Text>
+                <Text style={styles.energyValue}>{profile.bmr.toLocaleString()}</Text>
+                <Text style={styles.energyUnit}>kcal</Text>
+              </View>
+              <View style={styles.energyDivider} />
+              <View style={styles.energyItem}>
+                <Text style={styles.energyLabel}>TDEE</Text>
+                <Text style={styles.energyValue}>{profile.tdee.toLocaleString()}</Text>
+                <Text style={styles.energyUnit}>kcal</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Meals */}
         <View style={styles.mealsCard}>
           <Text style={styles.sectionTitle}>오늘의 식사</Text>
 
@@ -184,6 +222,11 @@ export default function HomeScreen() {
           })}
         </View>
       </ScrollView>
+
+      {/* FAB */}
+      <TouchableOpacity style={styles.fab} onPress={() => router.push('/(tabs)/log')}>
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -214,108 +257,129 @@ function FoodEntryRow({ entry, onDelete }: { entry: FoodEntry; onDelete: () => v
   );
 }
 
-function MacroItem({ label, current, target, unit, color }: {
+function MacroCard({ label, current, target, unit, color }: {
   label: string; current: number; target: number; unit: string; color: string;
 }) {
   const progress = Math.min(current / target, 1);
   return (
-    <View style={macroStyles.container}>
-      <Text style={macroStyles.label}>{label}</Text>
-      <Text style={[macroStyles.value, { color }]}>
-        {current}<Text style={macroStyles.unit}>/{target}{unit}</Text>
-      </Text>
-      <View style={macroStyles.bar}>
-        <View style={[macroStyles.fill, { width: `${progress * 100}%` as any, backgroundColor: color }]} />
+    <View style={styles.macroCard}>
+      <Text style={styles.macroLabel}>{label}</Text>
+      <Text style={[styles.macroValue, { color }]}>{current}</Text>
+      <Text style={styles.macroTarget}>/ {target}{unit}</Text>
+      <View style={styles.macroBar}>
+        <View style={[styles.macroFill, { width: `${progress * 100}%` as any, backgroundColor: color }]} />
       </View>
     </View>
   );
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long',
-  });
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
-  greeting: { fontSize: 22, fontWeight: 'bold', color: COLORS.text },
-  date: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4 },
+  scrollContent: { paddingBottom: 100 },
+  header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12 },
+  dateLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 4 },
+  greeting: { fontSize: 28, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
+
+  // Calorie card
   calorieCard: {
-    margin: 16, backgroundColor: COLORS.surface, borderRadius: 16, padding: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 24, padding: 24,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3,
   },
-  calorieRow: { flexDirection: 'row', alignItems: 'center' },
-  calorieItem: { alignItems: 'center', flex: 1 },
-  calorieLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 },
-  calorieValue: { fontSize: 20, fontWeight: 'bold', color: COLORS.text },
-  calorieUnit: { fontSize: 11, color: COLORS.textSecondary },
-  calorieDivider: { width: 1, height: 50, backgroundColor: COLORS.border, marginHorizontal: 8 },
-  calorieMain: { flex: 2, alignItems: 'center' },
-  remainingValue: { fontSize: 36, fontWeight: 'bold', color: COLORS.primary },
-  remainingLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 8 },
-  progressBar: { width: '100%', height: 8, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: COLORS.primary, borderRadius: 4 },
-  progressOver: { backgroundColor: COLORS.error },
-  macrosCard: {
-    marginHorizontal: 16, marginBottom: 16, backgroundColor: COLORS.surface, borderRadius: 16, padding: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+  calorieCardLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 8 },
+  calorieMainRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  remainingValue: { fontSize: 56, fontWeight: '800', color: COLORS.text, letterSpacing: -2 },
+  remainingUnit: { fontSize: 14, color: COLORS.textSecondary, fontWeight: '500' },
+  ringContainer: { width: 80, height: 80 },
+  ringOuter: {
+    width: 80, height: 80, borderRadius: 40,
+    borderWidth: 8, borderColor: COLORS.surfaceContainerHigh,
+    justifyContent: 'center', alignItems: 'center',
+    position: 'relative',
   },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: COLORS.text, marginBottom: 16 },
-  macrosRow: { flexDirection: 'row', gap: 12 },
+  ringFill: {
+    position: 'absolute', width: 80, height: 80, borderRadius: 40,
+    borderWidth: 8, borderColor: COLORS.primaryContainer,
+    borderTopColor: 'transparent',
+  },
+  ringInner: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: COLORS.surfaceContainerLowest,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  ringPct: { fontSize: 14, fontWeight: '800', color: COLORS.text },
+  calorieFooter: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  calorieFooterLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: COLORS.textSecondary },
+  calorieFooterValue: { fontSize: 13, fontWeight: '600', color: COLORS.text },
+  progressBar: { flex: 1, height: 6, backgroundColor: COLORS.surfaceContainerHighest, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: COLORS.primaryContainer, borderRadius: 3 },
+
+  // Macros
+  macrosRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 12, gap: 8 },
+  macroCard: {
+    flex: 1, backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 20, padding: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  },
+  macroLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 6 },
+  macroValue: { fontSize: 20, fontWeight: '700', marginBottom: 2 },
+  macroTarget: { fontSize: 10, color: COLORS.textSecondary, marginBottom: 8 },
+  macroBar: { height: 4, backgroundColor: COLORS.surfaceContainerHighest, borderRadius: 2, overflow: 'hidden' },
+  macroFill: { height: '100%', borderRadius: 2 },
+
+  // Energy
+  energyCard: {
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: COLORS.surfaceContainer, borderRadius: 20, padding: 20,
+  },
+  energyTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 14 },
+  energyRow: { flexDirection: 'row', alignItems: 'center' },
+  energyItem: { flex: 1, alignItems: 'center' },
+  energyLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 4 },
+  energyValue: { fontSize: 22, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
+  energyUnit: { fontSize: 11, color: COLORS.textSecondary },
+  energyDivider: { width: 1, height: 40, backgroundColor: COLORS.border },
+
+  // Meals
   mealsCard: {
-    marginHorizontal: 16, marginBottom: 24, backgroundColor: COLORS.surface, borderRadius: 16, padding: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+    marginHorizontal: 16, marginBottom: 16,
+    backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 24, padding: 20,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3,
   },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginBottom: 4, letterSpacing: -0.3 },
   mealRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    borderBottomWidth: 1, borderBottomColor: COLORS.surfaceContainerHighest,
   },
   mealRowLast: { borderBottomWidth: 0 },
-  mealName: { fontSize: 15, color: COLORS.text, fontWeight: '600', flex: 1 },
+  mealName: { fontSize: 15, color: COLORS.text, fontWeight: '700', flex: 1 },
   mealRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  mealCalories: { fontSize: 14, color: COLORS.text, fontWeight: '500' },
-  mealCountBadge: {
-    backgroundColor: COLORS.primary + '18', borderRadius: 10,
-    paddingHorizontal: 7, paddingVertical: 2,
-  },
-  mealCount: { fontSize: 11, color: COLORS.primary, fontWeight: '600' },
-  mealEmpty: { fontSize: 13, color: COLORS.textSecondary },
-  mealChevron: { fontSize: 10, color: COLORS.textSecondary },
-  entryList: {
-    backgroundColor: COLORS.background, borderRadius: 10,
-    marginTop: 2, marginBottom: 4, paddingVertical: 2,
-  },
-  emptyMealRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 14, paddingHorizontal: 14,
-  },
+  mealCalories: { fontSize: 14, color: COLORS.text, fontWeight: '600' },
+  mealCountBadge: { backgroundColor: COLORS.primaryContainer + '40', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 },
+  mealCount: { fontSize: 11, color: COLORS.primary, fontWeight: '700' },
+  mealEmpty: { fontSize: 12, color: COLORS.textSecondary },
+  mealChevron: { fontSize: 9, color: COLORS.textSecondary },
+  entryList: { backgroundColor: COLORS.background, borderRadius: 12, marginTop: 2, marginBottom: 4, paddingVertical: 2 },
+  emptyMealRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 14 },
   noEntryText: { fontSize: 13, color: COLORS.textSecondary },
-  noEntryAction: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
-  entryRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 8, paddingHorizontal: 12,
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
-  },
+  noEntryAction: { fontSize: 13, color: COLORS.primary, fontWeight: '700' },
+  entryRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: COLORS.surfaceContainerHighest },
   entryInfo: { flex: 1 },
-  entryName: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginBottom: 2 },
+  entryName: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 2 },
   entryDetail: { fontSize: 12, color: COLORS.textSecondary },
   entryRight: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  entryCalories: { fontSize: 15, fontWeight: '700', color: COLORS.calories },
+  entryCalories: { fontSize: 15, fontWeight: '800', color: COLORS.primary },
   entryCalUnit: { fontSize: 10, color: COLORS.textSecondary, marginRight: 8 },
-  deleteBtn: {
-    width: 22, height: 22, borderRadius: 11,
-    backgroundColor: COLORS.error + '15', justifyContent: 'center', alignItems: 'center',
-  },
+  deleteBtn: { width: 22, height: 22, borderRadius: 11, backgroundColor: COLORS.error + '15', justifyContent: 'center', alignItems: 'center' },
   deleteBtnText: { fontSize: 10, color: COLORS.error, fontWeight: '700' },
-});
 
-const macroStyles = StyleSheet.create({
-  container: { flex: 1 },
-  label: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 },
-  value: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
-  unit: { fontSize: 11, color: COLORS.textSecondary, fontWeight: 'normal' },
-  bar: { height: 6, backgroundColor: COLORS.border, borderRadius: 3, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 3 },
+  // FAB
+  fab: {
+    position: 'absolute', bottom: 90, right: 20,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8,
+  },
+  fabIcon: { fontSize: 28, color: COLORS.primaryContainer, fontWeight: '300', lineHeight: 30 },
 });

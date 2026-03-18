@@ -44,10 +44,7 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
           <Text style={styles.emptyText}>프로필을 설정해주세요</Text>
-          <TouchableOpacity
-            style={styles.setupButton}
-            onPress={() => router.push('/onboarding')}
-          >
+          <TouchableOpacity style={styles.setupButton} onPress={() => router.push('/onboarding')}>
             <Text style={styles.setupButtonText}>프로필 설정하기</Text>
           </TouchableOpacity>
         </View>
@@ -60,11 +57,12 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
         {/* Header */}
         <View style={styles.header}>
           <View>
+            <Text style={styles.memberSince}>Member Profile</Text>
             <Text style={styles.name}>{profile.name}</Text>
             <Text style={styles.email}>{user?.email}</Text>
             {isDemoMode && (
@@ -73,96 +71,107 @@ export default function ProfileScreen() {
               </View>
             )}
           </View>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => router.push('/onboarding')}
-          >
+          <TouchableOpacity style={styles.editButton} onPress={() => router.push('/onboarding')}>
             <Text style={styles.editButtonText}>수정</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Goal card */}
-        <View style={[styles.goalCard, { borderLeftColor: goalInfo.color }]}>
-          <Text style={styles.goalEmoji}>{goalInfo.emoji}</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.goalLabel, { color: goalInfo.color }]}>{goalInfo.label}</Text>
-            <Text style={styles.goalDesc}>{goalInfo.description}</Text>
+        {/* Body stats bento */}
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>체중</Text>
+            <Text style={styles.statValue}>{profile.weight_kg}</Text>
+            <Text style={styles.statUnit}>kg</Text>
           </View>
-        </View>
-
-        {/* Body stats */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>신체 측정</Text>
-          <View style={styles.statsGrid}>
-            <StatItem label="키" value={`${profile.height_cm}`} unit="cm" />
-            <StatItem label="체중" value={`${profile.weight_kg}`} unit="kg" />
-            {profile.body_fat_percentage != null && (
-              <StatItem label="체지방률" value={`${profile.body_fat_percentage}`} unit="%" color={COLORS.secondary} />
-            )}
-            {profile.lean_body_mass != null && (
-              <StatItem label="제지방량(LBM)" value={`${profile.lean_body_mass}`} unit="kg" color={COLORS.accent} />
-            )}
-          </View>
-          {profile.body_fat_percentage == null && (
-            <TouchableOpacity
-              style={styles.addBfButton}
-              onPress={() => router.push('/onboarding')}
-            >
-              <Text style={styles.addBfText}>+ 체지방률 입력하면 더 정확해요</Text>
+          {profile.body_fat_percentage != null ? (
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>체지방률</Text>
+              <Text style={styles.statValue}>{profile.body_fat_percentage}</Text>
+              <Text style={styles.statUnit}>%</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={[styles.statCard, styles.statCardEmpty]} onPress={() => router.push('/onboarding')}>
+              <Text style={styles.statLabelEmpty}>체지방률</Text>
+              <Text style={styles.statAddText}>+ 추가</Text>
             </TouchableOpacity>
           )}
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>키</Text>
+            <Text style={styles.statValue}>{profile.height_cm}</Text>
+            <Text style={styles.statUnit}>cm</Text>
+          </View>
         </View>
 
-        {/* Metabolic stats */}
+        {/* Goal card */}
+        <View style={[styles.goalCard, { borderLeftColor: goalInfo.color }]}>
+          <View style={styles.goalLeft}>
+            <Text style={styles.goalEmoji}>{goalInfo.emoji}</Text>
+            <View>
+              <Text style={[styles.goalLabel, { color: goalInfo.color }]}>{goalInfo.label}</Text>
+              <Text style={styles.goalDesc}>{goalInfo.description}</Text>
+              <Text style={styles.goalDetail}>{goalInfo.detail}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Energy stats */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>대사량</Text>
-          <Text style={styles.bfFormula}>
+          <Text style={styles.cardSectionLabel}>ENERGY STATS</Text>
+          <Text style={styles.cardSectionTitle}>대사량</Text>
+          <Text style={styles.formulaText}>
             {profile.body_fat_percentage != null
-              ? '📐 Katch-McArdle 공식 (LBM 기반)'
-              : '📐 Mifflin-St Jeor 공식'}
+              ? 'Katch-McArdle 공식 (체지방률 기반)'
+              : 'Mifflin-St Jeor 공식'}
           </Text>
-          <View style={styles.metaRow}>
-            <MetaItem
-              label="기초대사량(BMR)"
-              value={profile.bmr}
-              unit="kcal"
-              desc="완전 휴식 시 소모"
-              color={COLORS.protein}
-            />
-            <MetaItem
-              label="활동대사량(TDEE)"
-              value={profile.tdee}
-              unit="kcal"
-              desc={`활동: ${activityInfo.label}`}
-              color={COLORS.accent}
-            />
+          <View style={styles.energyRow}>
+            <View style={styles.energyItem}>
+              <Text style={styles.energyLabel}>BMR</Text>
+              <Text style={styles.energyValue}>{profile.bmr.toLocaleString()}</Text>
+              <Text style={styles.energyUnit}>kcal</Text>
+              <Text style={styles.energyDesc}>완전 휴식 시 소모</Text>
+            </View>
+            <View style={styles.energyDivider} />
+            <View style={styles.energyItem}>
+              <Text style={styles.energyLabel}>TDEE</Text>
+              <Text style={styles.energyValue}>{profile.tdee.toLocaleString()}</Text>
+              <Text style={styles.energyUnit}>kcal</Text>
+              <Text style={styles.energyDesc}>{activityInfo.label}</Text>
+            </View>
           </View>
           <View style={styles.surplusRow}>
             <Text style={styles.surplusLabel}>목표 조정</Text>
             <Text style={[
               styles.surplusValue,
-              { color: profile.daily_calorie_target > profile.tdee ? COLORS.error : COLORS.primary }
+              { color: profile.daily_calorie_target > profile.tdee ? COLORS.secondary : COLORS.primary }
             ]}>
               {profile.daily_calorie_target > profile.tdee
                 ? `+${profile.daily_calorie_target - profile.tdee}`
                 : profile.daily_calorie_target < profile.tdee
-                ? `-${profile.tdee - profile.daily_calorie_target}`
-                : '±0'} kcal
+                  ? `-${profile.tdee - profile.daily_calorie_target}`
+                  : '±0'} kcal
             </Text>
           </View>
         </View>
 
         {/* Daily targets */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>일일 목표</Text>
-          <View style={styles.targetRow}>
-            <TargetBig label="칼로리" value={profile.daily_calorie_target} unit="kcal" color={COLORS.calories} />
+          <Text style={styles.cardSectionLabel}>DAILY TARGETS</Text>
+          <Text style={styles.cardSectionTitle}>일일 목표</Text>
+
+          <View style={styles.calorieTargetCard}>
+            <Text style={styles.calorieTargetLabel}>칼로리</Text>
+            <View style={styles.calorieTargetRow}>
+              <Text style={styles.calorieTargetValue}>{profile.daily_calorie_target.toLocaleString()}</Text>
+              <Text style={styles.calorieTargetUnit}>kcal</Text>
+            </View>
           </View>
-          <View style={styles.macroRow}>
-            <TargetMacro label="단백질" value={profile.daily_protein_target} unit="g" color={COLORS.protein} pct={Math.round(profile.daily_protein_target * 4 / profile.daily_calorie_target * 100)} />
-            <TargetMacro label="탄수화물" value={profile.daily_carb_target} unit="g" color={COLORS.carbs} pct={Math.round(profile.daily_carb_target * 4 / profile.daily_calorie_target * 100)} />
-            <TargetMacro label="지방" value={profile.daily_fat_target} unit="g" color={COLORS.fat} pct={Math.round(profile.daily_fat_target * 9 / profile.daily_calorie_target * 100)} />
+
+          <View style={styles.macroTargetRow}>
+            <MacroTarget label="단백질" value={profile.daily_protein_target} unit="g" color={COLORS.protein} pct={Math.round(profile.daily_protein_target * 4 / profile.daily_calorie_target * 100)} />
+            <MacroTarget label="탄수화물" value={profile.daily_carb_target} unit="g" color={COLORS.carbs} pct={Math.round(profile.daily_carb_target * 4 / profile.daily_calorie_target * 100)} />
+            <MacroTarget label="지방" value={profile.daily_fat_target} unit="g" color={COLORS.fat} pct={Math.round(profile.daily_fat_target * 9 / profile.daily_calorie_target * 100)} />
           </View>
+
           <Text style={styles.proteinBasis}>
             {profile.lean_body_mass != null
               ? `단백질: LBM ${profile.lean_body_mass}kg 기준`
@@ -183,148 +192,105 @@ export default function ProfileScreen() {
   );
 }
 
-function StatItem({ label, value, unit, color = COLORS.text }: { label: string; value: string; unit: string; color?: string }) {
+function MacroTarget({ label, value, unit, color, pct }: { label: string; value: number; unit: string; color: string; pct: number }) {
   return (
-    <View style={statStyles.container}>
-      <Text style={statStyles.label}>{label}</Text>
-      <Text style={[statStyles.value, { color }]}>{value}</Text>
-      <Text style={statStyles.unit}>{unit}</Text>
-    </View>
-  );
-}
-
-function MetaItem({ label, value, unit, desc, color }: { label: string; value: number; unit: string; desc: string; color: string }) {
-  return (
-    <View style={metaStyles.container}>
-      <Text style={metaStyles.label}>{label}</Text>
-      <Text style={[metaStyles.value, { color }]}>{value.toLocaleString()}</Text>
-      <Text style={metaStyles.unit}>{unit}</Text>
-      <Text style={metaStyles.desc}>{desc}</Text>
-    </View>
-  );
-}
-
-function TargetBig({ label, value, unit, color }: { label: string; value: number; unit: string; color: string }) {
-  return (
-    <View style={targetStyles.bigContainer}>
-      <Text style={targetStyles.bigLabel}>{label}</Text>
-      <View style={targetStyles.bigValueRow}>
-        <Text style={[targetStyles.bigValue, { color }]}>{value.toLocaleString()}</Text>
-        <Text style={targetStyles.bigUnit}>{unit}</Text>
-      </View>
-    </View>
-  );
-}
-
-function TargetMacro({ label, value, unit, color, pct }: { label: string; value: number; unit: string; color: string; pct: number }) {
-  return (
-    <View style={targetStyles.macroContainer}>
-      <View style={[targetStyles.macroDot, { backgroundColor: color }]} />
-      <Text style={targetStyles.macroLabel}>{label}</Text>
-      <Text style={[targetStyles.macroValue, { color }]}>{value}{unit}</Text>
-      <Text style={targetStyles.macroPct}>{pct}%</Text>
+    <View style={macroTargetStyles.container}>
+      <View style={[macroTargetStyles.dot, { backgroundColor: color }]} />
+      <Text style={macroTargetStyles.label}>{label}</Text>
+      <Text style={[macroTargetStyles.value, { color }]}>{value}{unit}</Text>
+      <Text style={macroTargetStyles.pct}>{pct}%</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { paddingBottom: 100 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
   emptyText: { fontSize: 16, color: COLORS.textSecondary },
-  setupButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
-  setupButtonText: { color: COLORS.white, fontWeight: '600', fontSize: 15 },
+  setupButton: { backgroundColor: COLORS.primary, borderRadius: 16, paddingHorizontal: 24, paddingVertical: 14 },
+  setupButtonText: { color: COLORS.primaryContainer, fontWeight: '700', fontSize: 15 },
+
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 20,
-    paddingTop: 24,
-    backgroundColor: COLORS.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16,
   },
-  name: { fontSize: 22, fontWeight: 'bold', color: COLORS.text },
+  memberSince: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: COLORS.primary, marginBottom: 4 },
+  name: { fontSize: 26, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
   email: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
-  demoBadge: { backgroundColor: COLORS.secondary + '20', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4, alignSelf: 'flex-start' },
-  demoBadgeText: { fontSize: 11, color: COLORS.secondary, fontWeight: '600' },
-  editButton: { backgroundColor: COLORS.primary + '15', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8 },
-  editButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
+  demoBadge: { backgroundColor: COLORS.secondaryContainer + '40', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginTop: 4, alignSelf: 'flex-start' },
+  demoBadgeText: { fontSize: 11, color: COLORS.secondary, fontWeight: '700' },
+  editButton: { backgroundColor: COLORS.secondaryContainer + '60', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 8 },
+  editButtonText: { color: COLORS.secondary, fontWeight: '700', fontSize: 14 },
+
+  statsGrid: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 12, gap: 8 },
+  statCard: {
+    flex: 1, backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 20, padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  },
+  statCardEmpty: { borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed' },
+  statLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 6 },
+  statLabelEmpty: { fontSize: 9, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 6 },
+  statValue: { fontSize: 22, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
+  statUnit: { fontSize: 11, color: COLORS.textSecondary },
+  statAddText: { fontSize: 14, color: COLORS.primary, fontWeight: '700', marginTop: 4 },
+
   goalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 4,
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 16,
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 20, padding: 16,
     borderLeftWidth: 4,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
   },
+  goalLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
   goalEmoji: { fontSize: 28 },
-  goalLabel: { fontSize: 17, fontWeight: '700' },
+  goalLabel: { fontSize: 17, fontWeight: '800' },
   goalDesc: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
+  goalDetail: { fontSize: 11, color: COLORS.textSecondary, marginTop: 4, fontStyle: 'italic' },
+
   card: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 24, padding: 20,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: COLORS.text, marginBottom: 14 },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  addBfButton: { marginTop: 12, paddingVertical: 8 },
-  addBfText: { fontSize: 13, color: COLORS.accent },
-  bfFormula: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 12, fontStyle: 'italic' },
-  metaRow: { flexDirection: 'row', gap: 12 },
-  surplusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: COLORS.border },
+  cardSectionLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 4 },
+  cardSectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginBottom: 12, letterSpacing: -0.3 },
+  formulaText: { fontSize: 12, color: COLORS.textSecondary, fontStyle: 'italic', marginBottom: 16 },
+
+  energyRow: { flexDirection: 'row', alignItems: 'center' },
+  energyItem: { flex: 1, alignItems: 'center' },
+  energyLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 4 },
+  energyValue: { fontSize: 24, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
+  energyUnit: { fontSize: 11, color: COLORS.textSecondary },
+  energyDesc: { fontSize: 11, color: COLORS.textSecondary, marginTop: 4 },
+  energyDivider: { width: 1, height: 50, backgroundColor: COLORS.border },
+  surplusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: COLORS.surfaceContainerHighest },
   surplusLabel: { fontSize: 13, color: COLORS.textSecondary },
-  surplusValue: { fontSize: 16, fontWeight: '700' },
-  targetRow: { marginBottom: 12 },
-  macroRow: { flexDirection: 'row', gap: 8 },
-  proteinBasis: { fontSize: 11, color: COLORS.textSecondary, marginTop: 10, fontStyle: 'italic' },
+  surplusValue: { fontSize: 16, fontWeight: '800' },
+
+  calorieTargetCard: { backgroundColor: COLORS.background, borderRadius: 16, padding: 16, marginBottom: 12, alignItems: 'center' },
+  calorieTargetLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: COLORS.textSecondary, marginBottom: 4 },
+  calorieTargetRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  calorieTargetValue: { fontSize: 36, fontWeight: '800', color: COLORS.primary, letterSpacing: -1 },
+  calorieTargetUnit: { fontSize: 14, color: COLORS.textSecondary },
+  macroTargetRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  proteinBasis: { fontSize: 11, color: COLORS.textSecondary, fontStyle: 'italic' },
+
   signOutButton: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 40,
-    borderWidth: 1,
-    borderColor: COLORS.error + '50',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
+    marginHorizontal: 16, marginTop: 4, marginBottom: 40,
+    borderWidth: 1.5, borderColor: COLORS.error + '40',
+    borderRadius: 16, paddingVertical: 14, alignItems: 'center',
   },
-  signOutText: { color: COLORS.error, fontWeight: '600', fontSize: 15 },
+  signOutText: { color: COLORS.error, fontWeight: '700', fontSize: 15 },
 });
 
-const statStyles = StyleSheet.create({
-  container: { alignItems: 'center', minWidth: 80 },
-  label: { fontSize: 11, color: COLORS.textSecondary, marginBottom: 4 },
-  value: { fontSize: 22, fontWeight: 'bold' },
-  unit: { fontSize: 11, color: COLORS.textSecondary },
-});
-
-const metaStyles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', backgroundColor: COLORS.background, borderRadius: 12, padding: 12 },
-  label: { fontSize: 11, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 6 },
-  value: { fontSize: 24, fontWeight: 'bold' },
-  unit: { fontSize: 11, color: COLORS.textSecondary },
-  desc: { fontSize: 11, color: COLORS.textSecondary, marginTop: 4, textAlign: 'center' },
-});
-
-const targetStyles = StyleSheet.create({
-  bigContainer: { backgroundColor: COLORS.background, borderRadius: 12, padding: 14, alignItems: 'center' },
-  bigLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 },
-  bigValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  bigValue: { fontSize: 36, fontWeight: 'bold' },
-  bigUnit: { fontSize: 14, color: COLORS.textSecondary },
-  macroContainer: { flex: 1, backgroundColor: COLORS.background, borderRadius: 12, padding: 12, alignItems: 'center', gap: 3 },
-  macroDot: { width: 8, height: 8, borderRadius: 4 },
-  macroLabel: { fontSize: 11, color: COLORS.textSecondary },
-  macroValue: { fontSize: 16, fontWeight: '700' },
-  macroPct: { fontSize: 11, color: COLORS.textSecondary },
+const macroTargetStyles = StyleSheet.create({
+  container: {
+    flex: 1, backgroundColor: COLORS.background,
+    borderRadius: 16, padding: 12, alignItems: 'center', gap: 3,
+  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  label: { fontSize: 10, color: COLORS.textSecondary, fontWeight: '600' },
+  value: { fontSize: 16, fontWeight: '800' },
+  pct: { fontSize: 11, color: COLORS.textSecondary },
 });

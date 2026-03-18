@@ -9,16 +9,34 @@ export function setDemoMode(enabled: boolean) {
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
+export class RateLimitError extends Error {
+  constructor() {
+    super('RATE_LIMIT_EXCEEDED');
+    this.name = 'RateLimitError';
+  }
+}
+
 async function callEdgeFunction(name: string, body: object): Promise<any> {
+  let token = SUPABASE_ANON_KEY;
+  try {
+    const { supabase } = await import('../lib/supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) token = session.access_token;
+  } catch {}
+
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(body),
   });
+
+  if (res.status === 429) {
+    throw new RateLimitError();
+  }
 
   if (!res.ok) {
     const err = await res.text();

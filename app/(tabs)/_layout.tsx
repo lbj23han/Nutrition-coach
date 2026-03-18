@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../lib/constants';
 
 export default function TabLayout() {
@@ -6,12 +7,25 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarInactiveTintColor: '#94a3b8',
         tabBarStyle: {
-          backgroundColor: COLORS.surface,
-          borderTopColor: COLORS.border,
-          height: 60,
-          paddingBottom: 8,
+          backgroundColor: 'rgba(255,255,255,0.92)',
+          borderTopWidth: 0,
+          height: 72,
+          paddingBottom: 12,
+          paddingTop: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.04,
+          shadowRadius: 16,
+          elevation: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 9,
+          fontWeight: '700',
+          letterSpacing: 0.8,
+          textTransform: 'uppercase',
+          marginTop: 2,
         },
         headerShown: false,
       }}
@@ -19,45 +33,45 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '오늘',
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon emoji="🏠" color={color} size={size} />
+          title: 'Today',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="⊞" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="log"
         options={{
-          title: '식사 기록',
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon emoji="✏️" color={color} size={size} />
+          title: 'Log',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="+" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="stats"
         options={{
-          title: '통계',
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon emoji="📊" color={color} size={size} />
+          title: 'Stats',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="↗" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="coach"
         options={{
-          title: 'AI 코치',
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon emoji="🤖" color={color} size={size} />
+          title: 'Coach',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="✦" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: '프로필',
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon emoji="👤" color={color} size={size} />
+          title: 'Profile',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon="◉" focused={focused} />
           ),
         }}
       />
@@ -65,15 +79,30 @@ export default function TabLayout() {
   );
 }
 
-function TabIcon({
-  emoji,
-  color,
-  size,
-}: {
-  emoji: string;
-  color: string;
-  size: number;
-}) {
-  const { Text } = require('react-native');
-  return <Text style={{ fontSize: size * 0.9 }}>{emoji}</Text>;
+function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
+  return (
+    <View style={[tabIconStyles.container, focused && tabIconStyles.containerActive]}>
+      <Text style={[tabIconStyles.icon, focused && tabIconStyles.iconActive]}>{icon}</Text>
+    </View>
+  );
 }
+
+const tabIconStyles = StyleSheet.create({
+  container: {
+    width: 36,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  containerActive: {
+    backgroundColor: COLORS.primaryContainer + '40',
+  },
+  icon: {
+    fontSize: 16,
+    color: '#94a3b8',
+  },
+  iconActive: {
+    color: COLORS.primary,
+  },
+});

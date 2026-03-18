@@ -1,4 +1,5 @@
 import OpenAI from 'https://deno.land/x/openai@v4.28.0/mod.ts';
+import { getUserId, checkAndIncrement } from '../_shared/rateLimit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,6 +17,17 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const userId = await getUserId(req.headers.get('Authorization'));
+    if (userId) {
+      const { allowed, used } = await checkAndIncrement(userId);
+      if (!allowed) {
+        return new Response(
+          JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED', used }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
+
     const { messages, context } = await req.json();
 
     const client = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY')! });
