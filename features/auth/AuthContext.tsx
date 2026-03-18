@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getUserProfile } from '../../services/auth';
+import { setDemoMode } from '../../services/openai';
 import type { User, UserProfile, FitnessGoal } from '../../types';
 
 // Demo user data — no Supabase required
@@ -65,12 +66,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(DEMO_USER);
     setProfile(DEMO_PROFILE);
     setIsDemoMode(true);
+    setDemoMode(true);
   };
 
   const logoutDemo = () => {
     setUser(null);
     setProfile(null);
     setIsDemoMode(false);
+    setDemoMode(false);
   };
 
   const updateDemoProfile = (

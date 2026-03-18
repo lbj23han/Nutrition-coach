@@ -2,6 +2,11 @@ import OpenAI from 'openai';
 import type { ChatMessage, DailyNutrition, UserProfile } from '../types';
 
 let _openai: OpenAI | null = null;
+let _isDemoMode = false;
+
+export function setDemoMode(enabled: boolean) {
+  _isDemoMode = enabled;
+}
 
 function getClient(): OpenAI {
   if (!_openai) {
@@ -38,6 +43,11 @@ export async function getChatResponse(
   messages: ChatMessage[],
   context: CoachingContext
 ): Promise<string> {
+  if (_isDemoMode) {
+    const reply = DEMO_RESPONSES[_demoIndex % DEMO_RESPONSES.length];
+    _demoIndex++;
+    return reply;
+  }
   try {
     const client = getClient();
     const contextMessages = buildContextMessages(context);
@@ -85,6 +95,11 @@ export async function analyzeFoodWithAI(foodDescription: string): Promise<{
   quantity: number;
   unit: string;
 } | null> {
+  if (_isDemoMode) {
+    const key = Object.keys(DEMO_FOODS).find((k) => foodDescription.includes(k));
+    const data = DEMO_FOODS[key ?? 'default'];
+    return { name: foodDescription, ...data };
+  }
   try {
     const client = getClient();
 
@@ -163,6 +178,11 @@ const DEMO_VISION_RESULTS: VisionFoodResult[] = [
 let _demoVisionIndex = 0;
 
 export async function analyzeFoodImage(base64Image: string): Promise<VisionFoodResult> {
+  if (_isDemoMode) {
+    const result = DEMO_VISION_RESULTS[_demoVisionIndex % DEMO_VISION_RESULTS.length];
+    _demoVisionIndex++;
+    return result;
+  }
   try {
     const client = getClient();
 
